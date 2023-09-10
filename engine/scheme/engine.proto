@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+service MafiaEngine {
+    rpc CreateGame(CreateGameRequest) returns (CreateGameResponse) {}
+    rpc Connect(ConnectRequest) returns (ConnectResponse) {}
+    rpc StartGame(StartGameRequest) returns (StartGameResponse) {}
+    rpc GetState(GetStateRequest) returns (GetStateResponse) {}
+    rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse) {}
+    rpc MafiaChoose(MafiaChooseRequest) returns (MafiaChooseResponse) {}
+    rpc DetectiveChoose(DetectiveChooseRequest) returns (DetectiveChooseResponse) {}
+    rpc LynchChoose(LynchChooseRequest) returns (LynchChooseResponse) {}
+}
+
+message CreateGameRequest {
+    int32 max_player_number = 1;
+}
+
+message CreateGameResponse {
+    string session_id = 1;
+}
+
+message ConnectRequest {
+    string session_id = 1;
+    string username = 2;
+}
+
+message ConnectResponse {
+    bool ok = 1;
+    string user_key = 2;
+}
+
+message StartGameRequest {
+    string session_id = 1;
+    string user_key = 2;
+    int32 bot_players = 3;
+}
+
+message StartGameResponse {
+    bool ok = 1;
+}
+
+message GetStateRequest {
+    string session_id = 1;
+    string user_key = 2;
+}
+
+
+message GetStateResponse {
+    DayStage day_stage = 1;
+    SessionState session_state = 2;
+    repeated PlayerState players = 3;
+}
+
+enum DayStage {
+    DAY_STAGE_DAY = 0;
+    DAY_STAGE_NIGHT_MAFIA = 1;
+    DAY_STAGE_NIGHT_DETECTIVE = 2;
+}
+
+enum PlayerRole {
+    PLAYER_ROLE_CITIZEN = 0;
+    PLAYER_ROLE_MAFIA = 1;
+    PLAYER_ROLE_DETECTIVE = 2;
+}
+
+enum SessionState {
+    SESSION_STATE_NOT_STARTED = 0;
+    SESSION_STATE_PLAYING = 1;
+    SESSION_STATE_FINISHED = 2;
+}
+
+message PlayerState {
+    string username = 1;
+    bool is_alive = 2;
+    optional PlayerRole role = 3;
+}
+
+message GetNotificationsRequest {
+    string session_id = 1;
+    string user_key = 2;
+}
+
+message GetNotificationsResponse {
+    repeated string notifications = 1;
+}
+
+message MafiaChooseRequest {
+    string session_id = 1;
+    string user_key = 2;
+    string choose_player = 3;
+}
+
+message MafiaChooseResponse {
+    bool ok = 1;
+}
+
+message DetectiveChooseRequest {
+    string session_id = 1;
+    string user_key = 2;
+    string choose_player = 3;
+}
+
+message DetectiveChooseResponse {
+    bool ok = 1;
+}
+
+message LynchChooseRequest {
+    string session_id = 1;
+    string user_key = 2;
+    string choose_player = 3;
+}
+
+message LynchChooseResponse {
+    bool ok = 1;
+}

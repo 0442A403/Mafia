@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  engine:
+    restart: unless-stopped
+    networks: [mafia-engine]
+    build:
+      dockerfile: dockerfiles/engine.Dockerfile
+      args:
+        single: True
+        max_player_number: 5
+  
+  mafia-bot:
+    restart: unless-stopped
+    networks: [mafia-engine]
+    build:
+      dockerfile: dockerfiles/client.Dockerfile
+      args:
+        bot_session_id: "0"
+        engine_host: "engine:50051"
+    depends_on: [engine]
+    environment:
+      - PYTHONUNBUFFERED=1
+
+networks:
+  mafia-engine:
+    name: mafia-engine
