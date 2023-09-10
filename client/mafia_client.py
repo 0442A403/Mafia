@@ -12,21 +12,22 @@ BOT_USERNAMES = ["Olivia", "Amelia", "Isla", "Ava", "Ivy", "Florence", "Lily", "
 
 
 class MafiaClient(Client):
-    def __init__(self, host, session_id):
-        super().__init__(host)
+    def __init__(self, session_id, host, chat_host, chat_port):
+        super().__init__(host, chat_host, chat_port)
         self.session_id = session_id
+        self.bot = True
 
     def next_command(self):
         while not self.is_connected:
-            yield ["connect", str(self.session_id), random.choice(BOT_USERNAMES)]
+            yield ["connect", str(self.session_id), random.choice(BOT_USERNAMES)], ""
 
         while True:
             time.sleep(1)
             available_commands = self.get_available_commands()
             if not available_commands:
-                yield []
+                yield [], ""
             else:
-                yield random.choice(available_commands)
+                yield random.choice(available_commands), ""
 
     def get_available_commands(self):
         if self.me is not None and not self.me.is_alive:

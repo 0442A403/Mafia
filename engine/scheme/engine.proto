@@ -32,7 +32,8 @@ message ConnectResponse {
 message StartGameRequest {
     string session_id = 1;
     string user_key = 2;
-    int32 bot_players = 3;
+    uint32 mafia_count = 3;
+    uint32 detective_count = 4;
 }
 
 message StartGameResponse {
@@ -49,6 +50,9 @@ message GetStateResponse {
     DayStage day_stage = 1;
     SessionState session_state = 2;
     repeated PlayerState players = 3;
+    string session_id = 4;
+    optional string mafia_chat = 5;
+    optional string detective_chat = 6;
 }
 
 enum DayStage {

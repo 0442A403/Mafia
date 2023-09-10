@@ -20,10 +20,25 @@ services:
       args:
         bot_session_id: "0"
         engine_host: "engine:50051"
-    depends_on: [engine]
+    depends_on: [engine, chat]
     environment:
       - PYTHONUNBUFFERED=1
+  
+  chat:
+    image: "redis:7.2.1"
+    command: redis-server
+    networks: [chat]
+    ports:
+      - "6379:6379"
+    volumes:
+      - $PWD/redis-data:/var/lib/redis
+      - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
 
 networks:
   mafia-engine:
     name: mafia-engine
+  chat:
+    name: chat

@@ -19,17 +19,41 @@ if __name__ == "__main__":
         help="Address of engine",
         default="127.0.0.1:50051"
     )
+    parser.add_argument(
+        "--chat-host",
+        type=str,
+        help="Address of chat redis",
+        default="127.0.0.1"
+    )
+    parser.add_argument(
+        "--chat-port",
+        type=int,
+        help="Port of chat redis",
+        default=6379
+    )
     args = parser.parse_args()
+
     bot_session_id = args.bot_session_id
     host = args.engine_host
-    if bot_session_id:
-        client = MafiaClient(host, bot_session_id)
-    else:
-        client = Client(host)
+    chat_host = args.chat_host
+    chat_port = args.chat_port
 
-    for command in client.next_command():
+    if bot_session_id:
+        client = MafiaClient(bot_session_id, host, chat_host, chat_port)
+    else:
+        client = Client(host, chat_host, chat_port)
+
+    for command, source in client.next_command():
         if not command:
             continue
+
+        if command[0] == "chat":
+            if len(command) == 0:
+                print("Bad number of arguments")
+                continue
+            client.send_message(source[source.find(command[1]):])
+            continue
+
         if command[0] not in client.commands:
             print(f"Bad commands. You can use {list(client.commands.keys())}.")
             continue

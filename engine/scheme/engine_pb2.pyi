@@ -34,8 +34,10 @@ SESSION_STATE_PLAYING: SessionState
 SESSION_STATE_FINISHED: SessionState
 
 class CreateGameRequest(_message.Message):
-    __slots__ = []
-    def __init__(self) -> None: ...
+    __slots__ = ["max_player_number"]
+    MAX_PLAYER_NUMBER_FIELD_NUMBER: _ClassVar[int]
+    max_player_number: int
+    def __init__(self, max_player_number: _Optional[int] = ...) -> None: ...
 
 class CreateGameResponse(_message.Message):
     __slots__ = ["session_id"]
@@ -60,14 +62,16 @@ class ConnectResponse(_message.Message):
     def __init__(self, ok: bool = ..., user_key: _Optional[str] = ...) -> None: ...
 
 class StartGameRequest(_message.Message):
-    __slots__ = ["session_id", "user_key", "bot_players"]
+    __slots__ = ["session_id", "user_key", "mafia_count", "detective_count"]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     USER_KEY_FIELD_NUMBER: _ClassVar[int]
-    BOT_PLAYERS_FIELD_NUMBER: _ClassVar[int]
+    MAFIA_COUNT_FIELD_NUMBER: _ClassVar[int]
+    DETECTIVE_COUNT_FIELD_NUMBER: _ClassVar[int]
     session_id: str
     user_key: str
-    bot_players: int
-    def __init__(self, session_id: _Optional[str] = ..., user_key: _Optional[str] = ..., bot_players: _Optional[int] = ...) -> None: ...
+    mafia_count: int
+    detective_count: int
+    def __init__(self, session_id: _Optional[str] = ..., user_key: _Optional[str] = ..., mafia_count: _Optional[int] = ..., detective_count: _Optional[int] = ...) -> None: ...
 
 class StartGameResponse(_message.Message):
     __slots__ = ["ok"]
@@ -84,14 +88,20 @@ class GetStateRequest(_message.Message):
     def __init__(self, session_id: _Optional[str] = ..., user_key: _Optional[str] = ...) -> None: ...
 
 class GetStateResponse(_message.Message):
-    __slots__ = ["day_stage", "session_state", "players"]
+    __slots__ = ["day_stage", "session_state", "players", "session_id", "mafia_chat", "detective_chat"]
     DAY_STAGE_FIELD_NUMBER: _ClassVar[int]
     SESSION_STATE_FIELD_NUMBER: _ClassVar[int]
     PLAYERS_FIELD_NUMBER: _ClassVar[int]
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    MAFIA_CHAT_FIELD_NUMBER: _ClassVar[int]
+    DETECTIVE_CHAT_FIELD_NUMBER: _ClassVar[int]
     day_stage: DayStage
     session_state: SessionState
     players: _containers.RepeatedCompositeFieldContainer[PlayerState]
-    def __init__(self, day_stage: _Optional[_Union[DayStage, str]] = ..., session_state: _Optional[_Union[SessionState, str]] = ..., players: _Optional[_Iterable[_Union[PlayerState, _Mapping]]] = ...) -> None: ...
+    session_id: str
+    mafia_chat: str
+    detective_chat: str
+    def __init__(self, day_stage: _Optional[_Union[DayStage, str]] = ..., session_state: _Optional[_Union[SessionState, str]] = ..., players: _Optional[_Iterable[_Union[PlayerState, _Mapping]]] = ..., session_id: _Optional[str] = ..., mafia_chat: _Optional[str] = ..., detective_chat: _Optional[str] = ...) -> None: ...
 
 class PlayerState(_message.Message):
     __slots__ = ["username", "is_alive", "role"]

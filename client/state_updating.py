@@ -21,6 +21,13 @@ def loop_state_updater(engine, session_id, user_key, client):
         client.session_state = SessionState(response.session_state)
         client.day_stage = DayStage(response.day_stage)
 
+        if client.mafia_chat_id is None \
+                and client.detective_chat_id is None \
+                and (response.mafia_chat or response.detective_chat):
+            client.mafia_chat_id = response.mafia_chat
+            client.detective_chat_id = response.detective_chat
+            client.update_chats()
+
         time.sleep(0.25)
 
 
