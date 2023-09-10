@@ -9,7 +9,7 @@ from common.session_state import SessionState
 
 
 class Session:
-    def __init__(self, session_id, max_players):
+    def __init__(self, session_id, max_players=None):
         self.session_id = session_id
         self.players: Dict[str, Player] = {}
         self.notifications = {}
@@ -18,7 +18,8 @@ class Session:
         self.max_players = max_players
         self.username_to_user_key = {}
         self.voting = {}
-        self.votes = 0
+        self.votes = {}
+        self.innocent = None
 
     def notify(self, notification, targets=None):
         if not targets:
@@ -67,7 +68,8 @@ class Session:
                 or user_key not in self.players \
                 or choose_player not in self.username_to_user_key \
                 or not self.players[user_key].is_alive \
-                or user_key == self.username_to_user_key[choose_player]:
+                or user_key == self.username_to_user_key[choose_player]\
+                or user_key in self.votes:
             return False
 
         username = self.players[user_key].username
@@ -77,9 +79,9 @@ class Session:
         if choose_player_key not in self.voting:
             self.voting[choose_player_key] = 0
         self.voting[choose_player_key] += 1
-        self.votes += 1
+        self.votes[user_key] = choose_player_key
 
-        if self.votes == sum(map(lambda x: x.is_alive, self.players.values())):
+        if len(self.votes) == sum(map(lambda x: x.is_alive, self.players.values())):
             max_votes = max(self.voting.values())
             candidates = list(map(lambda x: x[0],
                                   filter(lambda candidate: candidate[1] == max_votes, self.voting.items())))
@@ -109,6 +111,7 @@ class Session:
 
         choose_player_key = self.username_to_user_key[choose_player]
         self.players[choose_player_key].is_alive = False
+        self.innocent = choose_player
 
         self.notify("Mafia chose innocent")
         self.notify("You are dead but you can still watch the game", [choose_player_key])
@@ -119,15 +122,16 @@ class Session:
             self.check_game_finish()
         else:
             self.notify("Detective choose suspect")
-            self.notify("Day comes, city awakes")
-            self.day_stage = DayStage.DAY
+            self.notify(f"Day comes, city awakes but without {self.innocent}")
+            self.check_game_finish()
+            self.start_day()
 
     def check_game_finish(self):
         if not any(map(lambda x: x.role == PlayerRole.MAFIA and x.is_alive, self.players.values())):
             self.notify("City won! Mafia is dead!")
             self.session_state = SessionState.FINISHED
             return True
-        if len(self.players) == 2:
+        if sum(map(lambda x: x.is_alive, self.players.values())) == 2:
             self.notify("Mafia is won!")
             self.session_state = SessionState.FINISHED
             return True
@@ -137,4 +141,24 @@ class Session:
     def start_day(self):
         self.day_stage = DayStage.DAY
         self.voting = {}
-        self.votes = 0
+        self.votes = {}
+
+    def detective_choose(self, user_key, choose_player):
+        if self.day_stage != DayStage.NIGHT_DETECTIVE \
+                or user_key not in self.players \
+                or choose_player not in self.username_to_user_key\
+                or self.players[user_key].role != PlayerRole.DETECTIVE \
+                or not self.players[user_key].is_alive \
+                or user_key == self.username_to_user_key[choose_player]:
+            return False
+
+        choose_player_key = self.username_to_user_key[choose_player]
+        choose_player_role = self.players[choose_player_key].role
+
+        self.notify("Detective choose suspect")
+        self.notify(f"Player {choose_player} is {choose_player_role}", [user_key])
+
+        self.notify(f"Day comes, city awakes but without {self.innocent}")
+        self.start_day()
+
+        return True

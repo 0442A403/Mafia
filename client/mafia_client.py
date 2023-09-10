@@ -45,8 +45,7 @@ class MafiaClient(Client):
             elif self.day_stage == DayStage.NIGHT_DETECTIVE:
                 if self.me.role == PlayerRole.DETECTIVE:
                     for player in self.get_alive_players():
-                        pass
-                        #commands.append(["detective_choose", player])
+                        commands.append(["detective_choose", player])
 
         return commands
 

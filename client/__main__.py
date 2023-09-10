@@ -22,7 +22,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     bot_session_id = args.bot_session_id
     host = args.engine_host
-    if bot_session_id is not None:
+    if bot_session_id:
         client = MafiaClient(host, bot_session_id)
     else:
         client = Client(host)
