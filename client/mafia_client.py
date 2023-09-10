@@ -2,6 +2,7 @@ import random
 import time
 
 from common.day_stage import DayStage
+from common.player_role import PlayerRole
 from common.session_state import SessionState
 from scheme.engine_pb2 import DAY_STAGE_DAY, DAY_STAGE_NIGHT_MAFIA, DAY_STAGE_NIGHT_DETECTIVE
 from client import Client
@@ -37,12 +38,12 @@ class MafiaClient(Client):
             if self.day_stage == DayStage.DAY:
                 for player in self.get_alive_players():
                     commands.append(["lynch", player])
-            elif self.day_stage == DAY_STAGE_NIGHT_MAFIA:
-                if self.me.role == "mafia":
+            elif self.day_stage == DayStage.NIGHT_MAFIA:
+                if self.me.role == PlayerRole.MAFIA:
                     for player in self.get_alive_players():
                         commands.append(["mafia_choose", player])
-            elif self.day_stage == DAY_STAGE_NIGHT_DETECTIVE:
-                if self.me.role == "detective":
+            elif self.day_stage == DayStage.NIGHT_DETECTIVE:
+                if self.me.role == PlayerRole.DETECTIVE:
                     for player in self.get_alive_players():
                         commands.append(["detective_choose", player])
 

@@ -7,7 +7,7 @@ from scheme.engine_pb2 import (
     CreateGameResponse,
     ConnectResponse,
     GetStateResponse,
-    PlayerState,
+    PlayerState, LynchChooseResponse,
 )
 from utils.random_id import generate_random_id
 from scheme.engine_pb2_grpc import MafiaEngineServicer
@@ -17,9 +17,8 @@ class Engine(MafiaEngineServicer):
     def __init__(self, single=False, max_players=None):
         super().__init__()
         self.sessions: Dict[str, Session] = {}
-        self.max_players = max_players
         if single:
-            self.sessions["0"] = Session("0")
+            self.sessions["0"] = Session("0", max_players)
 
     def CreateGame(self, request, context):
         session_id = generate_random_id()
@@ -32,8 +31,9 @@ class Engine(MafiaEngineServicer):
         session_id = request.session_id
         username = request.username
         player = Player(username)
-        self.sessions[session_id].connect(user_key, player)
-        self.sessions[session_id].notify(f"Player {username} connected")
+        ok = self.sessions[session_id].connect(user_key, player)
+        if not ok:
+            return ConnectResponse(ok=False)
 
         return ConnectResponse(user_key=user_key, ok=True)
 
@@ -49,7 +49,9 @@ class Engine(MafiaEngineServicer):
         user_key = request.user_key
         session_id = request.session_id
 
-        response = GetStateResponse(day_stage=self.sessions[session_id].day_stage.value)
+        response = GetStateResponse(
+            day_stage=self.sessions[session_id].day_stage.value,
+            session_state=self.sessions[session_id].session_state.value)
         for player_key, player in self.sessions[session_id].players.items():
             player_pb = PlayerState(username=player.username, is_alive=player.is_alive)
             if player_key == user_key:
@@ -61,3 +63,12 @@ class Engine(MafiaEngineServicer):
     def StartGame(self, request, context):
         session_id = request.session_id
         self.sessions[session_id].start()
+
+    def LynchChoose(self, request, context):
+        session_id = request.session_id
+        user_key = request.user_key
+        choose_player = request.choose_player
+
+        ok = self.sessions[session_id].lynch(user_key, choose_player)
+
+        return LynchChooseResponse(ok=ok)

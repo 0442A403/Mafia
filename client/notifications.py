@@ -10,7 +10,7 @@ def loop_notification_check(engine, session_id, user_key):
         for notification in response.notifications:
             print(notification)
 
-        time.sleep(0.5)
+        time.sleep(0.25)
 
 
 def get_client_request(session_id, user_key):

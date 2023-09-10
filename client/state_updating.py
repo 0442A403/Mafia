@@ -10,15 +10,17 @@ def loop_state_updater(engine, session_id, user_key, client):
     for request in get_client_request(session_id, user_key):
         response = engine.GetState(request)
 
-        client.session_state = SessionState(response.session_state)
-        client.day_stage = DayStage(response.day_stage)
         players = []
         for player in response.players:
             players.append(Player(player.username, player.is_alive, None if not player.role else player.role))
             if client.username == player.username:
                 client.me = player
 
-        time.sleep(0.5)
+        client.players = players
+        client.session_state = SessionState(response.session_state)
+        client.day_stage = DayStage(response.day_stage)
+
+        time.sleep(0.25)
 
 
 def get_client_request(session_id, user_key):
