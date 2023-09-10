@@ -65,7 +65,9 @@ class Session:
     def lynch(self, user_key, choose_player):
         if self.day_stage != DayStage.DAY \
                 or user_key not in self.players \
-                or choose_player not in self.username_to_user_key:
+                or choose_player not in self.username_to_user_key \
+                or not self.players[user_key].is_alive \
+                or user_key == self.username_to_user_key[choose_player]:
             return False
 
         username = self.players[user_key].username
@@ -77,7 +79,7 @@ class Session:
         self.voting[choose_player_key] += 1
         self.votes += 1
 
-        if self.votes == len(self.players):
+        if self.votes == sum(map(lambda x: x.is_alive, self.players.values())):
             max_votes = max(self.voting.values())
             candidates = list(map(lambda x: x[0],
                                   filter(lambda candidate: candidate[1] == max_votes, self.voting.items())))
@@ -89,6 +91,50 @@ class Session:
 
             self.notify(f"Player {choose_username} is lynched")
             self.notify("You are dead but you can still watch the game", [choose_user_key])
-            self.notify(f"Night comes, mafia is choosing innocent")
+            if self.check_game_finish():
+                return True
+
+            self.notify("Night comes, mafia is choosing innocent")
 
         return True
+
+    def mafia_choose(self, user_key, choose_player):
+        if self.day_stage != DayStage.NIGHT_MAFIA \
+                or user_key not in self.players \
+                or choose_player not in self.username_to_user_key\
+                or self.players[user_key].role != PlayerRole.MAFIA \
+                or not self.players[user_key].is_alive \
+                or user_key == self.username_to_user_key[choose_player]:
+            return False
+
+        choose_player_key = self.username_to_user_key[choose_player]
+        self.players[choose_player_key].is_alive = False
+
+        self.notify("Mafia chose innocent")
+        self.notify("You are dead but you can still watch the game", [choose_player_key])
+        self.notify("Night continues, detective is choosing suspect")
+
+        if any(map(lambda x: x.role == PlayerRole.DETECTIVE and x.is_alive, self.players.values())):
+            self.day_stage = DayStage.NIGHT_DETECTIVE
+            self.check_game_finish()
+        else:
+            self.notify("Detective choose suspect")
+            self.notify("Day comes, city awakes")
+            self.day_stage = DayStage.DAY
+
+    def check_game_finish(self):
+        if not any(map(lambda x: x.role == PlayerRole.MAFIA and x.is_alive, self.players.values())):
+            self.notify("City won! Mafia is dead!")
+            self.session_state = SessionState.FINISHED
+            return True
+        if len(self.players) == 2:
+            self.notify("Mafia is won!")
+            self.session_state = SessionState.FINISHED
+            return True
+
+        return False
+
+    def start_day(self):
+        self.day_stage = DayStage.DAY
+        self.voting = {}
+        self.votes = 0

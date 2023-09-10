@@ -7,7 +7,7 @@ from scheme.engine_pb2 import (
     CreateGameResponse,
     ConnectResponse,
     GetStateResponse,
-    PlayerState, LynchChooseResponse,
+    PlayerState, LynchChooseResponse, MafiaChooseResponse,
 )
 from utils.random_id import generate_random_id
 from scheme.engine_pb2_grpc import MafiaEngineServicer
@@ -72,3 +72,12 @@ class Engine(MafiaEngineServicer):
         ok = self.sessions[session_id].lynch(user_key, choose_player)
 
         return LynchChooseResponse(ok=ok)
+
+    def MafiaChoose(self, request, context):
+        session_id = request.session_id
+        user_key = request.user_key
+        choose_player = request.choose_player
+
+        ok = self.sessions[session_id].mafia_choose(user_key, choose_player)
+
+        return MafiaChooseResponse(ok=ok)

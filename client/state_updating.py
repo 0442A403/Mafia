@@ -2,6 +2,7 @@ import time
 
 from common.day_stage import DayStage
 from common.player import Player
+from common.player_role import PlayerRole
 from common.session_state import SessionState
 from scheme.engine_pb2 import GetStateRequest
 
@@ -12,9 +13,9 @@ def loop_state_updater(engine, session_id, user_key, client):
 
         players = []
         for player in response.players:
-            players.append(Player(player.username, player.is_alive, None if not player.role else player.role))
+            players.append(Player(player.username, player.is_alive, PlayerRole(player.role)))
             if client.username == player.username:
-                client.me = player
+                client.me = players[-1]
 
         client.players = players
         client.session_state = SessionState(response.session_state)
